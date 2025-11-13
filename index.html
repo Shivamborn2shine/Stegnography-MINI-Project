@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSec Steganography & Cryptography</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CyberSec <span class="accent">Steganography</span> & <span class="accent">Cryptography</span></h1>
+            <p class="subtitle">Secure your data with advanced encoding techniques</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="steganography">Steganography</button>
+            <button class="tab-button" data-tab="encoding">Text Encoding</button>
+            <button class="tab-button" data-tab="cryptography">Cryptography</button>
+        </div>
+
+        <!-- Steganography Section -->
+        <div id="steganography" class="tab-content active">
+            <div class="card">
+                <h2>Image Steganography</h2>
+                <div class="input-group">
+                    <label for="imageInput">Select Image:</label>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+                <div class="input-group">
+                    <label for="secretMessage">Secret Message:</label>
+                    <textarea id="secretMessage" placeholder="Enter your secret message here..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="stegPassword">Password (optional):</label>
+                    <input type="password" id="stegPassword" placeholder="Enter password for additional security">
+                </div>
+                <div class="button-group">
+                    <button id="encodeBtn" class="btn primary">Encode Message</button>
+                    <button id="decodeBtn" class="btn secondary">Decode Message</button>
+                </div>
+                <div id="stegResult" class="result-area hidden">
+                    <h3>Result:</h3>
+                    <div id="stegOutput"></div>
+                    <canvas id="stegCanvas" class="hidden"></canvas>
+                    <button id="downloadBtn" class="btn accent hidden">Download Image</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Encoding Section -->
+        <div id="encoding" class="tab-content">
+            <div class="card">
+                <h2>Text Encoding/Decoding</h2>
+                <div class="input-group">
+                    <label for="encodingType">Encoding Type:</label>
+                    <select id="encodingType">
+                        <option value="base64">Base64</option>
+                        <option value="hex">Hexadecimal</option>
+                        <option value="binary">Binary</option>
+                        <option value="url">URL Encoding</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="textInput">Input Text:</label>
+                    <textarea id="textInput" placeholder="Enter text to encode or decode..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="encodeTextBtn" class="btn primary">Encode</button>
+                    <button id="decodeTextBtn" class="btn secondary">Decode</button>
+                </div>
+                <div id="textResult" class="result-area hidden">
+                    <h3>Result:</h3>
+                    <div id="textOutput"></div>
+                    <button id="copyTextBtn" class="btn accent">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cryptography Section -->
+        <div id="cryptography" class="tab-content">
+            <div class="card">
+                <h2>Cryptography</h2>
+                <div class="input-group">
+                    <label for="cryptoType">Algorithm:</label>
+                    <select id="cryptoType">
+                        <option value="caesar">Caesar Cipher</option>
+                        <option value="xor">XOR Cipher</option>
+                        <option value="aes">AES (simulated)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="cryptoKey">Key:</label>
+                    <input type="text" id="cryptoKey" placeholder="Enter encryption key">
+                </div>
+                <div class="input-group">
+                    <label for="cryptoInput">Input Text:</label>
+                    <textarea id="cryptoInput" placeholder="Enter text to encrypt or decrypt..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="encryptBtn" class="btn primary">Encrypt</button>
+                    <button id="decryptBtn" class="btn secondary">Decrypt</button>
+                </div>
+                <div id="cryptoResult" class="result-area hidden">
+                    <h3>Result:</h3>
+                    <div id="cryptoOutput"></div>
+                    <button id="copyCryptoBtn" class="btn accent">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
