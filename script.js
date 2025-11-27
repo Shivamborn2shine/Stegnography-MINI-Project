@@ -123,6 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
         stegResult.classList.add('hidden');
     }
 
+
+
+
+
+
+
+
     encodeBtn.addEventListener('click', encodeImage);
     decodeBtn.addEventListener('click', decodeImage);
     downloadBtn.addEventListener('click', downloadImage);
