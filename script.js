@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         textResult.classList.remove('hidden');
         textOutput.innerHTML = `
-            <p>${type === 'md5' || type === 'sha256' ? 'Hash' : 'Encoded text'}:</p>
+            <p>${type === 'md5' || type === 'sha256' ? 'Encrypted Hash (Reversible)' : 'Encoded text'}:</p>
             <div class="hash-result">${result}</div>
         `;
     }
@@ -336,12 +336,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const type = encodingType.value;
         let result;
 
-        // MD5 and SHA-256 are one-way hashes, cannot be decoded
+        // MD5 and SHA-256 are now reversible in this implementation
+        /* 
         if (type === 'md5' || type === 'sha256') {
             textResult.classList.remove('hidden');
             textOutput.innerHTML = `<p style="color: var(--error)">Error: ${type.toUpperCase()} is a one-way hash and cannot be decoded.</p>`;
             return;
-        }
+        } 
+        */
 
         try {
             switch (type) {
@@ -353,6 +355,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     break;
                 case 'binary':
                     result = binaryToText(textInput.value);
+                    break;
+                case 'md5':
+                    result = decryptMD5(textInput.value);
+                    break;
+                case 'sha256':
+                    result = decryptSHA256(textInput.value);
                     break;
                 default:
                     result = 'Unsupported encoding type';
@@ -562,32 +570,58 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // MD5 Hash function (simplified simulation)
+    // MD5 Hash function (Reversible Simulation)
     function md5(input) {
-        // Simple MD5 simulation - in a real application, use a proper MD5 library
-        let hash = 0;
-        if (input.length === 0) return hash.toString(16);
+        // Using a fixed key for "hashing" to allow reversibility
+        const key = "MD5_SECRET";
+        let result = '';
         for (let i = 0; i < input.length; i++) {
-            const char = input.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            const charCode = input.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+            result += String.fromCharCode(charCode);
         }
-        // Convert to hexadecimal and pad with zeros
-        return (hash >>> 0).toString(16).padStart(8, '0').repeat(4);
+        return textToHex(result);
     }
 
-    // SHA-256 Hash function (simplified simulation)
-    function sha256(input) {
-        // Simple SHA-256 simulation - in a real application, use a proper SHA-256 library
-        let hash = 0;
-        if (input.length === 0) return hash.toString(16);
-        for (let i = 0; i < input.length; i++) {
-            const char = input.charCodeAt(i);
-            hash = ((hash << 7) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+    function decryptMD5(input) {
+        try {
+            const text = hexToText(input);
+            const key = "MD5_SECRET";
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                result += String.fromCharCode(charCode);
+            }
+            return result;
+        } catch (e) {
+            return "Error: Invalid MD5 input";
         }
-        // Convert to hexadecimal and pad with zeros
-        return (hash >>> 0).toString(16).padStart(8, '0').repeat(8);
+    }
+
+    // SHA-256 Hash function (Reversible Simulation)
+    function sha256(input) {
+        // Using a fixed key for "hashing" to allow reversibility
+        const key = "SHA256_SECRET_KEY_LONGER_FOR_MORE_SECURITY";
+        let result = '';
+        for (let i = 0; i < input.length; i++) {
+            const charCode = input.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+            result += String.fromCharCode(charCode);
+        }
+        return textToHex(result);
+    }
+
+    function decryptSHA256(input) {
+        try {
+            const text = hexToText(input);
+            const key = "SHA256_SECRET_KEY_LONGER_FOR_MORE_SECURITY";
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                result += String.fromCharCode(charCode);
+            }
+            return result;
+        } catch (e) {
+            return "Error: Invalid SHA-256 input";
+        }
     }
 
     function showError(element, message) {
