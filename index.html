@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberSec Steganography & Cryptography</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -24,8 +26,24 @@
             <div class="card">
                 <h2>Image Steganography</h2>
                 <div class="input-group">
-                    <label for="imageInput">Select Image:</label>
-                    <input type="file" id="imageInput" accept="image/*">
+                    <label>Select Image:</label>
+                    <div id="dropZone" class="drop-zone">
+                        <div class="drop-zone-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                                <path fill="currentColor"
+                                    d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                            </svg>
+                            <p>Drag & drop image here or <span class="accent">click to browse</span></p>
+                            <input type="file" id="imageInput" accept="image/*" class="hidden-input">
+                        </div>
+                        <div id="imagePreview" class="image-preview hidden">
+                            <img id="previewImg" src="" alt="Preview">
+                            <div class="file-info">
+                                <span id="fileName">filename.png</span>
+                                <button id="removeImageBtn" class="btn-icon" title="Remove image">×</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="input-group">
                     <label for="secretMessage">Secret Message:</label>
@@ -58,7 +76,8 @@
                         <option value="base64">Base64</option>
                         <option value="hex">Hexadecimal</option>
                         <option value="binary">Binary</option>
-                        <option value="url">URL Encoding</option>
+                        <option value="md5">MD5 Hash</option>
+                        <option value="sha256">SHA-256 Hash</option>
                     </select>
                 </div>
                 <div class="input-group">
@@ -66,7 +85,7 @@
                     <textarea id="textInput" placeholder="Enter text to encode or decode..."></textarea>
                 </div>
                 <div class="button-group">
-                    <button id="encodeTextBtn" class="btn primary">Encode</button>
+                    <button id="encodeTextBtn" class="btn primary">Encode/Hash</button>
                     <button id="decodeTextBtn" class="btn secondary">Decode</button>
                 </div>
                 <div id="textResult" class="result-area hidden">
@@ -112,4 +131,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

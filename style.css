@@ -1,4 +1,3 @@
-/* style.css */
 :root {
     --bg-primary: #0a0a0f;
     --bg-secondary: #12121a;
@@ -125,7 +124,9 @@ label {
     font-weight: 500;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
     width: 100%;
     padding: 12px;
     background-color: var(--bg-secondary);
@@ -136,7 +137,9 @@ input, textarea, select {
     transition: border-color 0.3s;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
     outline: none;
     border-color: var(--accent);
 }
@@ -224,7 +227,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    background:
         radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
     pointer-events: none;
@@ -251,9 +254,20 @@ body::before {
     0% {
         left: -100%;
     }
+
     100% {
         left: 100%;
     }
+}
+
+.hash-result {
+    word-break: break-all;
+    font-family: monospace;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 0.9rem;
 }
 
 /* Responsive design */
@@ -261,21 +275,111 @@ body::before {
     .container {
         padding: 10px;
     }
-    
+
     h1 {
         font-size: 2rem;
     }
-    
+
     .button-group {
         flex-direction: column;
     }
-    
+
     .tabs {
         flex-wrap: wrap;
     }
-    
+
     .tab-button {
         flex: 1;
         min-width: 120px;
     }
+
+    .card {
+        padding: 15px;
+    }
+}
+
+/* Drag & Drop Zone */
+.drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.02);
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: var(--accent);
+    background-color: rgba(0, 212, 255, 0.05);
+}
+
+.drop-zone-content {
+    pointer-events: none;
+    /* Allows click to pass through to parent */
+}
+
+.upload-icon {
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    transition: color 0.3s ease;
+}
+
+.drop-zone:hover .upload-icon,
+.drop-zone.dragover .upload-icon {
+    color: var(--accent);
+}
+
+.hidden-input {
+    display: none;
+}
+
+/* Image Preview */
+.image-preview {
+    width: 100%;
+    margin-top: 15px;
+    position: relative;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.file-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--error);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: transform 0.2s ease;
+}
+
+.btn-icon:hover {
+    transform: scale(1.2);
+}
+
+/* Hide drop zone content when preview is shown */
+.drop-zone.has-image .drop-zone-content {
+    display: none;
 }

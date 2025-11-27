@@ -1,17 +1,16 @@
-// script.js
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Tab functionality
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const tabId = button.getAttribute('data-tab');
-            
+
             // Update active tab button
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            
+
             // Show active tab content
             tabContents.forEach(content => {
                 content.classList.remove('active');
@@ -21,9 +20,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-    
+
     // Steganography functionality
     const imageInput = document.getElementById('imageInput');
+    const dropZone = document.getElementById('dropZone');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const fileName = document.getElementById('fileName');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+
     const secretMessage = document.getElementById('secretMessage');
     const stegPassword = document.getElementById('stegPassword');
     const encodeBtn = document.getElementById('encodeBtn');
@@ -32,61 +37,146 @@ document.addEventListener('DOMContentLoaded', function() {
     const stegOutput = document.getElementById('stegOutput');
     const stegCanvas = document.getElementById('stegCanvas');
     const downloadBtn = document.getElementById('downloadBtn');
-    
+
+    // Drag & Drop events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+    dropZone.addEventListener('click', () => imageInput.click());
+
+    // Prevent click on remove button from triggering drop zone click
+    removeImageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeImage();
+    });
+
+    imageInput.addEventListener('change', function () {
+        handleFiles(this.files);
+    });
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            imageInput.files = files; // Update the input files
+            handleFiles(files);
+        }
+    }
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                previewFile(file);
+            } else {
+                showError(stegOutput, 'Please select an image file.');
+            }
+        }
+    }
+
+    function previewFile(file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function () {
+            previewImg.src = reader.result;
+            fileName.textContent = file.name;
+            dropZone.classList.add('has-image');
+            imagePreview.classList.remove('hidden');
+
+            // Clear previous results
+            stegResult.classList.add('hidden');
+            stegCanvas.classList.add('hidden');
+            downloadBtn.classList.add('hidden');
+        }
+    }
+
+    function removeImage() {
+        imageInput.value = '';
+        previewImg.src = '';
+        fileName.textContent = '';
+        dropZone.classList.remove('has-image');
+        imagePreview.classList.add('hidden');
+        stegResult.classList.add('hidden');
+    }
+
     encodeBtn.addEventListener('click', encodeImage);
     decodeBtn.addEventListener('click', decodeImage);
     downloadBtn.addEventListener('click', downloadImage);
-    
+
     function encodeImage() {
         if (!imageInput.files || !imageInput.files[0]) {
             showError(stegOutput, 'Please select an image file.');
             return;
         }
-        
+
         if (!secretMessage.value.trim()) {
             showError(stegOutput, 'Please enter a secret message.');
             return;
         }
-        
+
         const file = imageInput.files[0];
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
+
+        reader.onload = function (e) {
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 // Set canvas dimensions to match image
                 stegCanvas.width = img.width;
                 stegCanvas.height = img.height;
-                
+
                 const ctx = stegCanvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
-                
+
                 // Get image data
                 const imageData = ctx.getImageData(0, 0, img.width, img.height);
                 const data = imageData.data;
-                
+
                 // Prepare message with delimiter
                 let message = secretMessage.value;
                 if (stegPassword.value) {
                     message = xorEncrypt(message, stegPassword.value);
                 }
                 message += '¶'; // End of message delimiter
-                
+
                 // Convert message to binary
                 const binaryMessage = textToBinary(message);
-                
+
                 // Check if message fits in image
                 if (binaryMessage.length > data.length * 4) {
                     showError(stegOutput, 'Message is too long for this image. Try a shorter message or a larger image.');
                     return;
                 }
-                
+
                 // Encode message in image
                 let messageIndex = 0;
                 for (let i = 0; i < data.length; i++) {
                     // Skip alpha channel for PNGs
                     if ((i + 1) % 4 === 0) continue;
-                    
+
                     if (messageIndex < binaryMessage.length) {
                         // Replace LSB with message bit
                         data[i] = (data[i] & 0xFE) | parseInt(binaryMessage[messageIndex]);
@@ -95,10 +185,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     }
                 }
-                
+
                 // Update image data
                 ctx.putImageData(imageData, 0, 0);
-                
+
                 // Show result
                 stegResult.classList.remove('hidden');
                 stegCanvas.classList.remove('hidden');
@@ -107,61 +197,61 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             img.src = e.target.result;
         };
-        
+
         reader.readAsDataURL(file);
     }
-    
+
     function decodeImage() {
         if (!imageInput.files || !imageInput.files[0]) {
             showError(stegOutput, 'Please select an image file.');
             return;
         }
-        
+
         const file = imageInput.files[0];
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
+
+        reader.onload = function (e) {
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 // Set canvas dimensions to match image
                 stegCanvas.width = img.width;
                 stegCanvas.height = img.height;
-                
+
                 const ctx = stegCanvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
-                
+
                 // Get image data
                 const imageData = ctx.getImageData(0, 0, img.width, img.height);
                 const data = imageData.data;
-                
+
                 // Extract LSBs
                 let binaryMessage = '';
                 for (let i = 0; i < data.length; i++) {
                     // Skip alpha channel for PNGs
                     if ((i + 1) % 4 === 0) continue;
-                    
+
                     // Get LSB
                     binaryMessage += data[i] & 1;
                 }
-                
+
                 // Convert binary to text
                 let message = binaryToText(binaryMessage);
-                
+
                 // Check for end of message delimiter
                 const delimiterIndex = message.indexOf('¶');
                 if (delimiterIndex === -1) {
                     showError(stegOutput, 'No hidden message found or message is corrupted.');
                     return;
                 }
-                
+
                 // Extract actual message
                 message = message.substring(0, delimiterIndex);
-                
+
                 // Decrypt if password was used
                 if (stegPassword.value) {
                     message = xorDecrypt(message, stegPassword.value);
                 }
-                
+
                 // Show result
                 stegResult.classList.remove('hidden');
                 stegCanvas.classList.add('hidden');
@@ -170,17 +260,17 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             img.src = e.target.result;
         };
-        
+
         reader.readAsDataURL(file);
     }
-    
+
     function downloadImage() {
         const link = document.createElement('a');
         link.download = 'encoded_image.png';
         link.href = stegCanvas.toDataURL();
         link.click();
     }
-    
+
     // Text encoding/decoding functionality
     const encodingType = document.getElementById('encodingType');
     const textInput = document.getElementById('textInput');
@@ -189,21 +279,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const textResult = document.getElementById('textResult');
     const textOutput = document.getElementById('textOutput');
     const copyTextBtn = document.getElementById('copyTextBtn');
-    
+
     encodeTextBtn.addEventListener('click', encodeText);
     decodeTextBtn.addEventListener('click', decodeText);
     copyTextBtn.addEventListener('click', copyTextToClipboard);
-    
+
     function encodeText() {
         if (!textInput.value.trim()) {
             showError(textOutput, 'Please enter text to encode.');
             return;
         }
-        
+
         const type = encodingType.value;
         let result;
-        
-        switch(type) {
+
+        switch (type) {
             case 'base64':
                 result = btoa(textInput.value);
                 break;
@@ -213,28 +303,41 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'binary':
                 result = textToBinary(textInput.value);
                 break;
-            case 'url':
-                result = encodeURIComponent(textInput.value);
+            case 'md5':
+                result = md5(textInput.value);
+                break;
+            case 'sha256':
+                result = sha256(textInput.value);
                 break;
             default:
                 result = 'Unsupported encoding type';
         }
-        
+
         textResult.classList.remove('hidden');
-        textOutput.innerHTML = `<p>Encoded text: <code>${result}</code></p>`;
+        textOutput.innerHTML = `
+            <p>${type === 'md5' || type === 'sha256' ? 'Hash' : 'Encoded text'}:</p>
+            <div class="hash-result">${result}</div>
+        `;
     }
-    
+
     function decodeText() {
         if (!textInput.value.trim()) {
             showError(textOutput, 'Please enter text to decode.');
             return;
         }
-        
+
         const type = encodingType.value;
         let result;
-        
+
+        // MD5 and SHA-256 are one-way hashes, cannot be decoded
+        if (type === 'md5' || type === 'sha256') {
+            textResult.classList.remove('hidden');
+            textOutput.innerHTML = `<p style="color: var(--error)">Error: ${type.toUpperCase()} is a one-way hash and cannot be decoded.</p>`;
+            return;
+        }
+
         try {
-            switch(type) {
+            switch (type) {
                 case 'base64':
                     result = atob(textInput.value);
                     break;
@@ -244,25 +347,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'binary':
                     result = binaryToText(textInput.value);
                     break;
-                case 'url':
-                    result = decodeURIComponent(textInput.value);
-                    break;
                 default:
                     result = 'Unsupported encoding type';
             }
-            
+
             textResult.classList.remove('hidden');
             textOutput.innerHTML = `<p>Decoded text: <strong>${result}</strong></p>`;
         } catch (e) {
             showError(textOutput, 'Error decoding text. Please check if the input is valid.');
         }
     }
-    
+
     function copyTextToClipboard() {
-        const text = textOutput.querySelector('code') ? 
-                     textOutput.querySelector('code').textContent : 
-                     textOutput.querySelector('strong').textContent;
-        
+        const textElement = textOutput.querySelector('.hash-result') || textOutput.querySelector('strong');
+        const text = textElement ? textElement.textContent : '';
+
+        if (!text) return;
+
         navigator.clipboard.writeText(text).then(() => {
             const originalText = copyTextBtn.textContent;
             copyTextBtn.textContent = 'Copied!';
@@ -271,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
-    
+
     // Cryptography functionality
     const cryptoType = document.getElementById('cryptoType');
     const cryptoKey = document.getElementById('cryptoKey');
@@ -281,26 +382,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const cryptoResult = document.getElementById('cryptoResult');
     const cryptoOutput = document.getElementById('cryptoOutput');
     const copyCryptoBtn = document.getElementById('copyCryptoBtn');
-    
+
     encryptBtn.addEventListener('click', encryptText);
     decryptBtn.addEventListener('click', decryptText);
     copyCryptoBtn.addEventListener('click', copyCryptoToClipboard);
-    
+
     function encryptText() {
         if (!cryptoInput.value.trim()) {
             showError(cryptoOutput, 'Please enter text to encrypt.');
             return;
         }
-        
+
         if (!cryptoKey.value.trim()) {
             showError(cryptoOutput, 'Please enter an encryption key.');
             return;
         }
-        
+
         const type = cryptoType.value;
         let result;
-        
-        switch(type) {
+
+        switch (type) {
             case 'caesar':
                 result = caesarCipher(cryptoInput.value, parseInt(cryptoKey.value) || 3, true);
                 break;
@@ -313,26 +414,26 @@ document.addEventListener('DOMContentLoaded', function() {
             default:
                 result = 'Unsupported encryption algorithm';
         }
-        
+
         cryptoResult.classList.remove('hidden');
         cryptoOutput.innerHTML = `<p>Encrypted text: <code>${result}</code></p>`;
     }
-    
+
     function decryptText() {
         if (!cryptoInput.value.trim()) {
             showError(cryptoOutput, 'Please enter text to decrypt.');
             return;
         }
-        
+
         if (!cryptoKey.value.trim()) {
             showError(cryptoOutput, 'Please enter a decryption key.');
             return;
         }
-        
+
         const type = cryptoType.value;
         let result;
-        
-        switch(type) {
+
+        switch (type) {
             case 'caesar':
                 result = caesarCipher(cryptoInput.value, parseInt(cryptoKey.value) || 3, false);
                 break;
@@ -345,16 +446,17 @@ document.addEventListener('DOMContentLoaded', function() {
             default:
                 result = 'Unsupported encryption algorithm';
         }
-        
+
         cryptoResult.classList.remove('hidden');
         cryptoOutput.innerHTML = `<p>Decrypted text: <strong>${result}</strong></p>`;
     }
-    
+
     function copyCryptoToClipboard() {
-        const text = cryptoOutput.querySelector('code') ? 
-                     cryptoOutput.querySelector('code').textContent : 
-                     cryptoOutput.querySelector('strong').textContent;
-        
+        const textElement = cryptoOutput.querySelector('code') || cryptoOutput.querySelector('strong');
+        const text = textElement ? textElement.textContent : '';
+
+        if (!text) return;
+
         navigator.clipboard.writeText(text).then(() => {
             const originalText = copyCryptoBtn.textContent;
             copyCryptoBtn.textContent = 'Copied!';
@@ -363,14 +465,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
-    
+
     // Utility functions
     function textToBinary(text) {
         return text.split('').map(char => {
             return char.charCodeAt(0).toString(2).padStart(8, '0');
         }).join('');
     }
-    
+
     function binaryToText(binary) {
         let text = '';
         for (let i = 0; i < binary.length; i += 8) {
@@ -381,13 +483,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return text;
     }
-    
+
     function textToHex(text) {
         return text.split('').map(char => {
             return char.charCodeAt(0).toString(16).padStart(2, '0');
         }).join('');
     }
-    
+
     function hexToText(hex) {
         let text = '';
         for (let i = 0; i < hex.length; i += 2) {
@@ -396,10 +498,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return text;
     }
-    
+
     function caesarCipher(text, shift, encrypt) {
         if (!encrypt) shift = -shift;
-        
+
         return text.split('').map(char => {
             if (char.match(/[a-z]/i)) {
                 const code = char.charCodeAt(0);
@@ -410,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return char;
         }).join('');
     }
-    
+
     function xorEncrypt(text, key) {
         let result = '';
         for (let i = 0; i < text.length; i++) {
@@ -419,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return btoa(result); // Base64 encode to make it readable
     }
-    
+
     function xorDecrypt(text, key) {
         try {
             const decoded = atob(text);
@@ -433,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return 'Error: Invalid encrypted text';
         }
     }
-    
+
     function simulateAES(text, key, encrypt) {
         // Note: This is a simulation - not real AES encryption
         // In a real application, you would use the Web Crypto API
@@ -452,7 +554,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
+    // MD5 Hash function (simplified simulation)
+    function md5(input) {
+        // Simple MD5 simulation - in a real application, use a proper MD5 library
+        let hash = 0;
+        if (input.length === 0) return hash.toString(16);
+        for (let i = 0; i < input.length; i++) {
+            const char = input.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        // Convert to hexadecimal and pad with zeros
+        return (hash >>> 0).toString(16).padStart(8, '0').repeat(4);
+    }
+
+    // SHA-256 Hash function (simplified simulation)
+    function sha256(input) {
+        // Simple SHA-256 simulation - in a real application, use a proper SHA-256 library
+        let hash = 0;
+        if (input.length === 0) return hash.toString(16);
+        for (let i = 0; i < input.length; i++) {
+            const char = input.charCodeAt(i);
+            hash = ((hash << 7) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        // Convert to hexadecimal and pad with zeros
+        return (hash >>> 0).toString(16).padStart(8, '0').repeat(8);
+    }
+
     function showError(element, message) {
         element.innerHTML = `<p style="color: var(--error)">${message}</p>`;
         element.parentElement.classList.remove('hidden');
